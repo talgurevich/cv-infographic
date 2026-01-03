@@ -24,12 +24,11 @@ export async function POST(request: NextRequest) {
 
     // Convert file to buffer and extract text
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const uint8Array = new Uint8Array(bytes);
 
-    // Dynamic import for pdf-parse (CommonJS module)
-    const pdfParse = (await import('pdf-parse')).default;
-    const pdfData = await pdfParse(buffer);
-    const pdfText = pdfData.text;
+    // Use unpdf for PDF text extraction
+    const { extractText } = await import('unpdf');
+    const { text: pdfText } = await extractText(uint8Array);
 
     if (!pdfText || pdfText.trim().length < 50) {
       return NextResponse.json(
