@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
 
     // Use unpdf for PDF text extraction
     const { extractText } = await import('unpdf');
-    const { text: pdfText } = await extractText(uint8Array);
+    const { text: pdfTextArray } = await extractText(uint8Array);
+    const pdfText = pdfTextArray.join('\n');
 
     if (!pdfText || pdfText.trim().length < 50) {
       return NextResponse.json(
