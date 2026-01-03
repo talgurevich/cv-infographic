@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to process CV. Please try again.' },
+      { error: `Failed to process CV: ${errorMessage}` },
       { status: 500 }
     );
   }
