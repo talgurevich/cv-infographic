@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdf from 'pdf-parse';
 import { parseCVWithAI } from '@/lib/parse-cv';
 import { saveCV } from '@/lib/storage';
 
@@ -27,7 +26,9 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const pdfData = await pdf(buffer);
+    // Dynamic import for pdf-parse (CommonJS module)
+    const pdfParse = (await import('pdf-parse')).default;
+    const pdfData = await pdfParse(buffer);
     const pdfText = pdfData.text;
 
     if (!pdfText || pdfText.trim().length < 50) {
