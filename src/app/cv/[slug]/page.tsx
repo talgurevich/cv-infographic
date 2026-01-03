@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
 import { getCV } from '@/lib/storage';
-import { CVData } from '@/lib/types';
 import { Metadata } from 'next';
 
 interface PageProps {
@@ -30,230 +29,265 @@ export default async function CVPage({ params }: PageProps) {
   }
 
   const isRTL = cvData.language === 'he';
-  const primaryColor = cvData.styleHints?.primaryColor || '#3B82F6';
+  const primaryColor = cvData.styleHints?.primaryColor || '#2563eb';
 
   return (
     <div
       dir={isRTL ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100"
-      style={{ '--primary-color': primaryColor } as React.CSSProperties}
+      className="min-h-screen py-10 px-4"
+      style={{
+        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+        fontFamily: "'Poppins', sans-serif",
+      }}
     >
-      {/* Header */}
-      <header
-        className="text-white py-12 px-4"
-        style={{ backgroundColor: primaryColor }}
-      >
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            {cvData.profile.name}
-          </h1>
-          <p className="text-xl md:text-2xl opacity-90">
-            {cvData.profile.title}
-          </p>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+      <div className="max-w-[1200px] mx-auto">
+        {/* Header Card */}
+        <header className="bg-white rounded-[20px] p-8 md:p-10 mb-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-2">
+                {cvData.profile.name}
+              </h1>
+              <p className="text-xl font-medium mb-5" style={{ color: primaryColor }}>
+                {cvData.profile.title}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {cvData.profile.email && (
+                  <ContactPill icon={<EmailIcon />} text={cvData.profile.email} />
+                )}
+                {cvData.profile.phone && (
+                  <ContactPill icon={<PhoneIcon />} text={cvData.profile.phone} />
+                )}
+                {cvData.profile.location && (
+                  <ContactPill icon={<LocationIcon />} text={cvData.profile.location} />
+                )}
+                {cvData.profile.linkedin && (
+                  <a href={cvData.profile.linkedin} target="_blank" rel="noopener noreferrer">
+                    <ContactPill icon={<LinkedInIcon />} text="LinkedIn" />
+                  </a>
+                )}
+              </div>
+            </div>
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg flex-shrink-0"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, #0891b2)`,
+                boxShadow: `0 10px 30px ${primaryColor}50`
+              }}
+            >
+              {cvData.profile.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </div>
+          </div>
+
           {cvData.profile.summary && (
-            <p className="mt-4 text-lg opacity-80 max-w-2xl">
+            <p className="mt-6 text-slate-600 leading-relaxed text-[0.95rem]">
               {cvData.profile.summary}
             </p>
           )}
-          <div className="flex flex-wrap gap-4 mt-6 text-sm">
-            {cvData.profile.email && (
-              <span className="flex items-center gap-1">
-                <EmailIcon />
-                {cvData.profile.email}
-              </span>
+        </header>
+
+        {/* Stats Section */}
+        {cvData.experience && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+            <StatCard
+              number={`${cvData.experience.length}+`}
+              label={isRTL ? 'תפקידים' : 'Positions'}
+              color={primaryColor}
+            />
+            {cvData.skills && (
+              <StatCard
+                number={`${cvData.skills.reduce((acc, s) => acc + s.items.length, 0)}`}
+                label={isRTL ? 'כישורים' : 'Skills'}
+                color={primaryColor}
+              />
             )}
-            {cvData.profile.phone && (
-              <span className="flex items-center gap-1">
-                <PhoneIcon />
-                {cvData.profile.phone}
-              </span>
+            {cvData.languages && (
+              <StatCard
+                number={`${cvData.languages.length}`}
+                label={isRTL ? 'שפות' : 'Languages'}
+                color={primaryColor}
+              />
             )}
-            {cvData.profile.location && (
-              <span className="flex items-center gap-1">
-                <LocationIcon />
-                {cvData.profile.location}
-              </span>
-            )}
-            {cvData.profile.linkedin && (
-              <a
-                href={cvData.profile.linkedin}
-                className="flex items-center gap-1 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <LinkedInIcon />
-                LinkedIn
-              </a>
+            {cvData.education && (
+              <StatCard
+                number={`${cvData.education.length}`}
+                label={isRTL ? 'תארים' : 'Degrees'}
+                color={primaryColor}
+              />
             )}
           </div>
-        </div>
-      </header>
+        )}
 
-      <main className="max-w-4xl mx-auto py-8 px-4">
-        {/* Experience Section */}
-        {cvData.experience && cvData.experience.length > 0 && (
-          <Section title={isRTL ? 'ניסיון תעסוקתי' : 'Experience'} isRTL={isRTL}>
-            <div className="space-y-6">
-              {cvData.experience.map((exp, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-lg p-6 shadow-sm border-l-4"
-                  style={{ borderColor: primaryColor }}
-                >
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900">
-                        {exp.role}
-                      </h3>
-                      <p className="text-lg text-slate-600">{exp.company}</p>
-                    </div>
-                    <span className="text-sm text-slate-500 whitespace-nowrap">
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
+          {/* Timeline Section */}
+          <div className="bg-white rounded-[20px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+            <SectionTitle title={isRTL ? 'ניסיון תעסוקתי' : 'Career Journey'} />
+
+            <div className={`relative ${isRTL ? 'pr-8' : 'pl-8'}`}>
+              {/* Timeline line */}
+              <div
+                className={`absolute ${isRTL ? 'right-[6px]' : 'left-[6px]'} top-0 bottom-0 w-[3px] rounded`}
+                style={{ background: `linear-gradient(to bottom, ${primaryColor}, #0891b2, #f59e0b)` }}
+              />
+
+              {cvData.experience?.map((exp, index) => (
+                <div key={index} className="relative pb-8 last:pb-0">
+                  {/* Timeline dot */}
+                  <div
+                    className={`absolute ${isRTL ? '-right-8' : '-left-8'} top-1 w-4 h-4 rounded-full border-[3px] bg-white z-10`}
+                    style={{ borderColor: primaryColor }}
+                  />
+
+                  <div className="mb-2">
+                    <span className="text-sm font-semibold" style={{ color: primaryColor }}>
                       {exp.period}
                     </span>
                   </div>
+                  <h3 className="text-lg font-semibold text-slate-800">{exp.role}</h3>
+                  <p className="text-[#0891b2] mb-2">{exp.company}</p>
+
                   {exp.highlights && exp.highlights.length > 0 && (
-                    <ul className="mt-4 space-y-2">
-                      {exp.highlights.map((highlight, hIndex) => (
-                        <li
-                          key={hIndex}
-                          className="text-slate-700 flex items-start gap-2"
-                        >
-                          <span
-                            className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: primaryColor }}
-                          />
-                          {highlight}
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-slate-500 text-sm leading-relaxed mb-3">
+                      {exp.highlights[0]}
+                    </p>
                   )}
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
 
-        {/* Education Section */}
-        {cvData.education && cvData.education.length > 0 && (
-          <Section title={isRTL ? 'השכלה' : 'Education'} isRTL={isRTL}>
-            <div className="grid gap-4 md:grid-cols-2">
-              {cvData.education.map((edu, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-lg p-5 shadow-sm"
-                >
-                  <h3 className="font-semibold text-slate-900">{edu.degree}</h3>
-                  <p className="text-slate-600">{edu.institution}</p>
-                  <p className="text-sm text-slate-500 mt-1">{edu.period}</p>
-                  {edu.details && (
-                    <p className="text-sm text-slate-600 mt-2">{edu.details}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {/* Skills Section */}
-        {cvData.skills && cvData.skills.length > 0 && (
-          <Section title={isRTL ? 'כישורים' : 'Skills'} isRTL={isRTL}>
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="space-y-4">
-                {cvData.skills.map((skillGroup, index) => (
-                  <div key={index}>
-                    <h3 className="font-semibold text-slate-700 mb-2">
-                      {skillGroup.category}
-                    </h3>
+                  {exp.highlights && exp.highlights.length > 1 && (
                     <div className="flex flex-wrap gap-2">
-                      {skillGroup.items.map((skill, sIndex) => (
+                      {exp.highlights.slice(1, 4).map((h, i) => (
                         <span
-                          key={sIndex}
-                          className="px-3 py-1 rounded-full text-sm text-white"
-                          style={{ backgroundColor: primaryColor }}
+                          key={i}
+                          className="text-white text-xs px-3 py-1 rounded-full"
+                          style={{ background: `linear-gradient(135deg, ${primaryColor}, #0891b2)` }}
                         >
-                          {skill}
+                          {h.length > 20 ? h.substring(0, 20) + '...' : h}
                         </span>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
+              ))}
             </div>
-          </Section>
-        )}
+          </div>
 
-        {/* Languages Section */}
-        {cvData.languages && cvData.languages.length > 0 && (
-          <Section title={isRTL ? 'שפות' : 'Languages'} isRTL={isRTL}>
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <div className="flex flex-wrap gap-4">
-                {cvData.languages.map((lang, index) => (
-                  <div key={index} className="text-center">
-                    <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg mx-auto"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      {lang.language.slice(0, 2).toUpperCase()}
+          {/* Sidebar */}
+          <div className="flex flex-col gap-6">
+            {/* Education */}
+            {cvData.education && cvData.education.length > 0 && (
+              <div className="bg-white rounded-[20px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                <SectionTitle title={isRTL ? 'השכלה' : 'Education'} />
+                <div className="space-y-5">
+                  {cvData.education.map((edu, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${primaryColor}, #0891b2)` }}
+                      >
+                        {edu.institution.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800">{edu.degree}</p>
+                        <p className="text-[#0891b2] text-sm">{edu.institution}</p>
+                        <p className="text-slate-400 text-sm">{edu.period}</p>
+                      </div>
                     </div>
-                    <p className="mt-2 font-medium text-slate-900">
-                      {lang.language}
-                    </p>
-                    <p className="text-sm text-slate-500">{lang.level}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </Section>
-        )}
+            )}
 
-        {/* Certifications Section */}
-        {cvData.certifications && cvData.certifications.length > 0 && (
-          <Section title={isRTL ? 'הסמכות' : 'Certifications'} isRTL={isRTL}>
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <ul className="space-y-2">
-                {cvData.certifications.map((cert, index) => (
-                  <li key={index} className="flex items-center gap-2 text-slate-700">
-                    <CertIcon color={primaryColor} />
-                    {cert}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Section>
-        )}
-      </main>
+            {/* Languages */}
+            {cvData.languages && cvData.languages.length > 0 && (
+              <div className="bg-white rounded-[20px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                <SectionTitle title={isRTL ? 'שפות' : 'Languages'} />
+                <div className="flex flex-wrap gap-3">
+                  {cvData.languages.map((lang, index) => (
+                    <span
+                      key={index}
+                      className="text-white px-5 py-2 rounded-full font-medium"
+                      style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                    >
+                      {lang.language}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-      {/* Footer */}
-      <footer className="text-center py-6 text-slate-400 text-sm">
-        <p>
+            {/* Skills */}
+            {cvData.skills && cvData.skills.length > 0 && (
+              <div className="bg-white rounded-[20px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                <SectionTitle title={isRTL ? 'כישורים' : 'Expertise'} />
+                <div className="grid grid-cols-2 gap-2">
+                  {cvData.skills.flatMap(s => s.items).slice(0, 8).map((skill, index) => (
+                    <div
+                      key={index}
+                      className="bg-slate-50 px-4 py-3 rounded-lg text-sm text-slate-700 text-center hover:bg-blue-600 hover:text-white transition-colors cursor-default"
+                    >
+                      {skill}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {cvData.certifications && cvData.certifications.length > 0 && (
+              <div className="bg-white rounded-[20px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                <SectionTitle title={isRTL ? 'הסמכות' : 'Certifications'} />
+                <ul className="space-y-3">
+                  {cvData.certifications.map((cert, index) => (
+                    <li key={index} className="flex items-start gap-2 text-slate-700 text-sm border-b border-slate-100 pb-3 last:border-0">
+                      <span style={{ color: primaryColor }} className="font-bold">&gt;</span>
+                      {cert}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center py-8 text-white/60 text-sm">
           {isRTL ? 'נוצר באמצעות' : 'Generated with'}{' '}
-          <span className="font-medium">CV Infographic</span>
-        </p>
-      </footer>
+          <span className="font-medium text-white/80">CV Infographic</span>
+        </footer>
+      </div>
     </div>
   );
 }
 
-function Section({
-  title,
-  children,
-  isRTL,
-}: {
-  title: string;
-  children: React.ReactNode;
-  isRTL: boolean;
-}) {
+function SectionTitle({ title }: { title: string }) {
   return (
-    <section className="mb-8">
-      <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-        <span
-          className="w-1 h-8 rounded"
-          style={{ backgroundColor: 'var(--primary-color)' }}
-        />
-        {title}
-      </h2>
-      {children}
-    </section>
+    <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+      <span
+        className="w-1 h-7 rounded"
+        style={{ background: 'linear-gradient(to bottom, #2563eb, #0891b2)' }}
+      />
+      {title}
+    </h2>
+  );
+}
+
+function StatCard({ number, label, color }: { number: string; label: string; color: string }) {
+  return (
+    <div className="bg-white rounded-2xl p-6 text-center shadow-[0_10px_40px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-transform">
+      <div className="text-3xl font-bold" style={{ color }}>{number}</div>
+      <div className="text-slate-500 text-sm mt-1">{label}</div>
+    </div>
+  );
+}
+
+function ContactPill({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full text-sm text-slate-700 hover:bg-blue-600 hover:text-white transition-colors cursor-default">
+      {icon}
+      {text}
+    </div>
   );
 }
 
@@ -285,15 +319,7 @@ function LocationIcon() {
 function LinkedInIcon() {
   return (
     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-    </svg>
-  );
-}
-
-function CertIcon({ color }: { color: string }) {
-  return (
-    <svg className="w-5 h-5" fill={color} viewBox="0 0 24 24">
-      <path d="M12 2L3 7v10l9 5 9-5V7l-9-5zm0 2.18l6.9 3.82L12 11.82 5.1 8 12 4.18zM5 9.82l6 3.33v6.67l-6-3.33V9.82zm8 10v-6.67l6-3.33v6.67l-6 3.33z"/>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
     </svg>
   );
 }
